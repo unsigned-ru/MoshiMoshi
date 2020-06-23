@@ -12,8 +12,6 @@ namespace MoshiMoshi
 {
     class Program
     {
-        public Config config = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
-
         public static void Main(string[] args)
         => new Program().MainAsync().GetAwaiter().GetResult();
 
@@ -22,17 +20,17 @@ namespace MoshiMoshi
             using (var services = ConfigureServices())
             {
                 var client = services.GetRequiredService<DiscordSocketClient>();
+                Config config = services.GetRequiredService<ConfigService>().config;
 
                 client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-               
+                
                 await client.LoginAsync(TokenType.Bot, config.token);
                 await client.StartAsync();
 
                 await services.GetRequiredService<CommandHandlingService>().InitializeAsync();
                 services.GetRequiredService<DataService>();
                 await services.GetRequiredService<MatchmakingService>().InitializeAsync();
-
 
                 // Block this task until the program is closed.
                 await Task.Delay(-1);
@@ -47,12 +45,18 @@ namespace MoshiMoshi
 
         private ServiceProvider ConfigureServices()
         {
+            //create client config
+            var config = new DiscordSocketConfig();
+            config.MessageCacheSize = 10;
+
+            //build service provider
             return new ServiceCollection()
-                .AddSingleton<DiscordSocketClient>()
+                .AddSingleton<DiscordSocketClient>(new DiscordSocketClient(config))
                 .AddSingleton<CommandService>()
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton<MatchmakingService>()
                 .AddSingleton<DataService>()
+                .AddSingleton<ConfigService>()
                 .BuildServiceProvider();
         }
     }

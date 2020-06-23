@@ -39,14 +39,6 @@ namespace MoshiMoshi.Services
             if (!(rawMessage is SocketUserMessage message)) return;
             if (message.Source != MessageSource.User) return;
 
-            //check if message is in DM
-            if (message.Channel is IDMChannel)
-            {
-                //check if user is in session
-                ChatSession session = services.GetRequiredService<DataService>().sessions.Find(x => x.user1.userID == message.Author.Id || x.user2.userID == message.Author.Id);
-                if (session != null) await session.ForwardMessage(message);
-            }
-
             // This value holds the offset where the prefix ends
             var argPos = 0;
             // Perform prefix check. You may want to replace this with

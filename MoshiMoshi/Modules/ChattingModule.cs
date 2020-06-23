@@ -22,18 +22,19 @@ namespace MoshiMoshi.Modules
         [Command("call")]
         public Task Call()
         {
-            //check if player already in queue.
-            if (_dataService.playerQueue.Exists(x => x.userID == Context.User.Id))
-            {
-                ReplyAsync("You are already queued for a conversation! [There are " + _dataService.playerQueue.Count + " queued ppl]");
-            }
-            else
-            {
-                //create UserAccount Instance and add to queue
-                _dataService.playerQueue.Add(new UserAccount(Context.User.Id, services));
-                ReplyAsync("You have been queued for a conversation...  [There are " + _dataService.playerQueue.Count + " queued ppl]");
-            }
-            
+            ////check if player already in queue.
+            //if (_dataService.playerQueue.Exists(x => x.userID == Context.User.Id))
+            //{
+            //    ReplyAsync("You are already queued for a conversation! [There are " + _dataService.playerQueue.Count + " queued ppl]");
+            //}
+            //else
+            //{
+                
+            //}
+            //create UserAccount Instance and add to queue
+            _dataService.playerQueue.Add(new UserAccount(Context.User.Id, services));
+            ReplyAsync("You have been queued for a conversation...  [There are " + _dataService.playerQueue.Count + " queued ppl]");
+
             return Task.CompletedTask;
         }
     }
