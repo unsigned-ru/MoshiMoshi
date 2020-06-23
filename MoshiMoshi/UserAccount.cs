@@ -1,10 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualBasic;
 using MoshiMoshi.Services;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MoshiMoshi
 {
@@ -14,17 +16,17 @@ namespace MoshiMoshi
         public readonly IUser user;
         public IServiceProvider services;
 
-
-        private ChatSession session
+        private ChatSession _session;
+        public ChatSession session
         {
             get
             {
-                return this.session;
+                return _session;
             }
             set
             {
-                this.session = value;
-                value.SessionDestroyed += SessionDestroyed;
+                _session = value;
+                if (value != null) _session.SessionDestroyed += SessionDestroyed;
             }
         }
 
@@ -32,8 +34,6 @@ namespace MoshiMoshi
         {
             session = null;
         }
-
-        //interests
 
         public UserAccount(ulong _userID, IServiceProvider _services)
         {
@@ -46,13 +46,14 @@ namespace MoshiMoshi
 
         public bool CheckIsInSession(List<ChatSession> sessions)
         {
-            return sessions.Exists(x => x.user1.userAccount == this || x.user2.userAccount == this);
+            return sessions.Exists(x => x.user[0].userAccount == this || x.user[0].userAccount == this);
         }
 
         public bool IsMessageFromUser(SocketMessage msg)
         {
             return msg.Author.Id == userID;
         }
+
     }
 
     public class SessionAccount
@@ -68,9 +69,32 @@ namespace MoshiMoshi
 
         public string GetDisplayName()
         {
-            if (hasRevealed) return userAccount.user.Username;
+            if (hasRevealed) return userAccount.user.ToString();
             else return userAccount.services.GetRequiredService<ConfigService>().config.anonDisplayName;
         }
-    }
 
+        public async Task Reveal()
+        {
+            hasRevealed = true;
+            await userAccount.user.SendMessageAsync("**⚠️ You have revealed your discord username. ⚠️**");
+
+            await GetOtherAccount().userAccount.user.SendMessageAsync($"**⚠️ Anon has revealed their discord tag: __{userAccount.user}__ ⚠️**");
+        }
+
+        public async Task EndSession()
+        {
+            await userAccount.user.SendMessageAsync("**❌ You have closed the session. ❌**");
+
+            var otherAccount = GetOtherAccount();
+            await otherAccount.userAccount.user.SendMessageAsync($"**❌ {GetDisplayName()} has ended the session.❌**");
+
+            userAccount.session.Destroy(EventArgs.Empty);
+        }
+
+        public SessionAccount GetOtherAccount()
+        {
+            return userAccount.session.user.FirstOrDefault(x => x != this);
+        }
+        
+    }
 }

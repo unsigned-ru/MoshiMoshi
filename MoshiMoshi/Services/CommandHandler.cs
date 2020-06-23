@@ -44,7 +44,7 @@ namespace MoshiMoshi.Services
             // Perform prefix check. You may want to replace this with
             // 
             // for a more traditional command format like !help.
-            if (!message.HasCharPrefix('!', ref argPos)) return;
+            if (!message.HasStringPrefix(services.GetRequiredService<ConfigService>().config.prefix, ref argPos)) return;
 
             var context = new SocketCommandContext(discord, message);
             // Perform the execution of the command. In this method,

@@ -11,40 +11,54 @@ namespace MoshiMoshi
     public class ChatSession
     {
         public event EventHandler SessionDestroyed;
-        public SessionAccount user1, user2;
+        public SessionAccount[] user;
 
         private IServiceProvider services;
 
 
         public ChatSession(UserAccount _user1, UserAccount _user2, IServiceProvider _services)
         {
-            user1 = new SessionAccount(ref _user1);
-            user2 = new SessionAccount(ref _user2);
             services = _services;
 
+            user = new SessionAccount[] { new SessionAccount(ref _user1), new SessionAccount(ref _user2) };
+            foreach (SessionAccount sessionAccount in user) sessionAccount.userAccount.session = this;
+
+            bindEvents();
+        }
+
+        private void bindEvents()
+        {
             //bind events for session.
-            var client = _services.GetRequiredService<DiscordSocketClient>();
+            var client = services.GetRequiredService<DiscordSocketClient>();
             client.MessageReceived += MessageReceived;
             client.MessageUpdated += MessageUpdated;
+        }
+        private void unbindEvents()
+        {
+            //bind events for session.
+            var client = services.GetRequiredService<DiscordSocketClient>();
+            client.MessageReceived -= MessageReceived;
+            client.MessageUpdated -= MessageUpdated;
         }
 
         private async Task MessageUpdated(Cacheable<IMessage, ulong> oldMessageCasheable, SocketMessage msg, ISocketMessageChannel channel)
         {
-            
-            if (user1.userAccount.IsMessageFromUser(msg)) await RelayUpdateMessageForUser(oldMessageCasheable, msg, user1, user2);
-            else if (user2.userAccount.IsMessageFromUser(msg)) await RelayUpdateMessageForUser(oldMessageCasheable, msg, user2, user1);
+            if (channel as IDMChannel == null) return;
+            if (user[0].userAccount.IsMessageFromUser(msg)) await RelayUpdateMessageForUser(oldMessageCasheable, msg, user[0], user[1]);
+            else if (user[1].userAccount.IsMessageFromUser(msg)) await RelayUpdateMessageForUser(oldMessageCasheable, msg, user[1], user[0]);
         }
 
         private async Task MessageReceived(SocketMessage msg)
         {
-            if (user1.userAccount.IsMessageFromUser(msg)) await user2.userAccount.user.SendMessageAsync($"__**{user1.GetDisplayName()}:**__ {msg.Content}");
-            else if (user2.userAccount.IsMessageFromUser(msg)) await user1.userAccount.user.SendMessageAsync($"__**{user1.GetDisplayName()}:**__ {msg.Content}");
+            if (msg.Channel as IDMChannel == null || msg.Content.StartsWith(services.GetRequiredService<ConfigService>().config.prefix)) return;
+            if (user[0].userAccount.IsMessageFromUser(msg)) await user[1].userAccount.user.SendMessageAsync($"__**{user[0].GetDisplayName()}:**__ {msg.Content}");
+            else if (user[1].userAccount.IsMessageFromUser(msg)) await user[0].userAccount.user.SendMessageAsync($"__**{user[1].GetDisplayName()}:**__ {msg.Content}");
         }
 
         public void InitializeChat()
         {
-            user1.userAccount.user.SendMessageAsync($"Your session with anon has been set up.");
-            user2.userAccount.user.SendMessageAsync($"Your session with anon has been set up.");
+            foreach (SessionAccount sessionAccount in user) 
+                sessionAccount.userAccount.user.SendMessageAsync($"**✅ Your session with anon has been set up. ✅**");
         }
 
         public void Destroy(EventArgs e)
@@ -53,6 +67,7 @@ namespace MoshiMoshi
             SessionDestroyed.Invoke(this, e);
             //remove from data list.
             services.GetRequiredService<DataService>().sessions.Remove(this);
+            unbindEvents();
         }
 
         private async Task RelayUpdateMessageForUser(Cacheable<IMessage, ulong> oldMessageCacheable, SocketMessage msg, SessionAccount sender, SessionAccount receiver)
