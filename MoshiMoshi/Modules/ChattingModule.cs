@@ -9,6 +9,8 @@ using MoshiMoshi.Services;
 namespace MoshiMoshi.Modules
 {
     // Modules must be public and inherit from an IModuleBase
+    [Summary("Contains commands regarding chatting sessions.")]
+    [Remarks("")]
     public class ChattingModule : ModuleBase<SocketCommandContext>
     {
         IServiceProvider services;
@@ -21,6 +23,7 @@ namespace MoshiMoshi.Modules
         }
 
         [Command("call")]
+        [Summary("Find a partner to talk to.")]
         public Task Call()
         {
             //check if player already in queue.
@@ -40,6 +43,7 @@ namespace MoshiMoshi.Modules
         }
 
         [Command("reveal")]
+        [Summary("Reveal you discord tag to your session partner. (only usable in session)")]
         public async Task Reveal()
         {
             ChatSession session = dataService.sessions.Find(x => x.user.FirstOrDefault(y => y.userAccount.userID == Context.User.Id) != null);
@@ -52,6 +56,7 @@ namespace MoshiMoshi.Modules
         }
 
         [Command("end")]
+        [Summary("End the current session with your partner. (only usable in session)")]
         public async Task End()
         {
             ChatSession session = dataService.sessions.Find(x => x.user.FirstOrDefault(y => y.userAccount.userID == Context.User.Id) != null);

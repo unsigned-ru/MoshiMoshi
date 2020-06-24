@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
 using MoshiMoshi.Services;
 using System;
 using System.Collections.Generic;

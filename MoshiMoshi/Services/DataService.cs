@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 using System.Collections.Generic;
 
 namespace MoshiMoshi.Services
@@ -18,8 +12,6 @@ namespace MoshiMoshi.Services
         public DataService(IServiceProvider _services)
         {
             services = _services;
-
-
         }
     }
 }
