@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Text.RegularExpressions;
+using MoshiMoshi.Classes;
+using System.Linq;
 
 namespace MoshiMoshi.Services
 {
@@ -32,28 +34,27 @@ namespace MoshiMoshi.Services
         {
             Console.WriteLine("Matchmaking called.");
             //check if atleast two players are queued.
-            if (dataService.playerQueue.Count < 2) return Task.CompletedTask;
-
-            //shuffle the queue
-            Utils.Shuffle(dataService.playerQueue);
+            if (dataService.userQueue.Count < 2) return Task.CompletedTask;
 
             //TODO: find users with similar interests
 
+            dataService.userQueue.Shuffle();
+
             //pair users in pairs of two
-            for (int i = dataService.playerQueue.Count; i > 1; i -= 2)
+            for (int i = dataService.userQueue.Count; i > 1; i -= 2)
             {
                 //get accounts
-                UserAccount player1 = dataService.playerQueue[i-1];
-                UserAccount player2 = dataService.playerQueue[i-2];
+                UserAccount user1 = dataService.userQueue.ElementAt(i - 1).Value;
+                UserAccount user2 = dataService.userQueue.ElementAt(i - 2).Value;
 
                 //create session & remove players from queue.
-                ChatSession newSession = new ChatSession(player1, player2, services);
+                ChatSession newSession = new ChatSession(user1, user2, services);
                 dataService.sessions.Add(newSession);
-                dataService.playerQueue.Remove(player1);
-                dataService.playerQueue.Remove(player2);
+                dataService.userQueue.Remove(user1.userID);
+                dataService.userQueue.Remove(user2.userID);
                 newSession.InitializeChat(); //initialize the chat
             }
-            
+
 
             return Task.CompletedTask;
         }

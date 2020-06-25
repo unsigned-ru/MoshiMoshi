@@ -66,7 +66,7 @@ namespace MoshiMoshi.Services
                 return;
 
             // the command failed, let's notify the user that something happened.
-            await context.Channel.SendMessageAsync($"error: {result}");
+            await context.Channel.SendMessageAsync($"{result}");
         }
     }
 }

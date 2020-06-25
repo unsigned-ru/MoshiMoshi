@@ -1,12 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
-using Newtonsoft.Json;
 using MoshiMoshi.Services;
-using System.IO;
+using MoshiMoshi.Classes;
 
 namespace MoshiMoshi
 {
@@ -22,25 +20,19 @@ namespace MoshiMoshi
                 var client = services.GetRequiredService<DiscordSocketClient>();
                 Config config = services.GetRequiredService<ConfigService>().config;
 
-                client.Log += LogAsync;
-                services.GetRequiredService<CommandService>().Log += LogAsync;
-                
+                //bind events before bot starts
+                services.GetRequiredService<EventService>().Initialize();
+
                 await client.LoginAsync(TokenType.Bot, config.token);
                 await client.StartAsync();
 
+                //initialize services that need initializiation.
                 await services.GetRequiredService<CommandHandlingService>().InitializeAsync();
-                services.GetRequiredService<DataService>();
                 await services.GetRequiredService<MatchmakingService>().InitializeAsync();
 
                 // Block this task until the program is closed.
                 await Task.Delay(-1);
             }
-        }
-
-        private Task LogAsync(LogMessage msg)
-        {
-            Console.WriteLine(msg.ToString());
-            return Task.CompletedTask;
         }
 
         private ServiceProvider ConfigureServices()
@@ -57,6 +49,7 @@ namespace MoshiMoshi
                 .AddSingleton<MatchmakingService>()
                 .AddSingleton<DataService>()
                 .AddSingleton<ConfigService>()
+                .AddSingleton<EventService>()
                 .BuildServiceProvider();
         }
     }

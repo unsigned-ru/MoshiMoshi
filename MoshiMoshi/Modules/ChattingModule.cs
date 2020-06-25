@@ -1,9 +1,8 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
+using MoshiMoshi.Classes;
 using MoshiMoshi.Services;
 
 namespace MoshiMoshi.Modules
@@ -27,15 +26,16 @@ namespace MoshiMoshi.Modules
         public Task Call()
         {
             //check if player already in queue.
-            if (dataService.playerQueue.Exists(x => x.userID == Context.User.Id))
+            //TODO: change on release
+            if (false) //dataService.userQueue.ContainsKey(Context.User.Id)
             {
-                ReplyAsync("You are already queued for a conversation! [There are " + dataService.playerQueue.Count + " queued ppl]");
+                ReplyAsync("You are already queued for a conversation! [There are " + dataService.userQueue.Count + " queued users]");
             }
             else
             {
                 //create UserAccount Instance and add to queue
-                dataService.playerQueue.Add(new UserAccount(Context.User.Id, services));
-                ReplyAsync("You have been queued for a conversation...  [There are " + dataService.playerQueue.Count + " queued ppl]");
+                dataService.userQueue.Add(Context.User.Id, new UserAccount(Context.User.Id, services));
+                ReplyAsync("You have been queued for a conversation...  [There are " + dataService.userQueue.Count + " queued users]");
             }
 
 
@@ -46,12 +46,10 @@ namespace MoshiMoshi.Modules
         [Summary("Reveal you discord tag to your session partner. (only usable in session)")]
         public async Task Reveal()
         {
-            ChatSession session = dataService.sessions.Find(x => x.user.FirstOrDefault(y => y.userAccount.userID == Context.User.Id) != null);
+            if (dataService.userQueue.ContainsKey(Context.User.Id)) return;
 
-            if (session == null) return;
-
-            await session.user.FirstOrDefault(x => x.userAccount.userID == Context.User.Id).Reveal();
-
+            SessionAccount account = dataService.sessionAccounts[Context.User.Id];
+            await account.Reveal();
             return;
         }
 
@@ -59,11 +57,10 @@ namespace MoshiMoshi.Modules
         [Summary("End the current session with your partner. (only usable in session)")]
         public async Task End()
         {
-            ChatSession session = dataService.sessions.Find(x => x.user.FirstOrDefault(y => y.userAccount.userID == Context.User.Id) != null);
+            if (dataService.userQueue.ContainsKey(Context.User.Id)) return;
 
-            if (session == null) return;
-
-            await session.user.FirstOrDefault(x => x.userAccount.userID == Context.User.Id).EndSession();
+            SessionAccount account = dataService.sessionAccounts[Context.User.Id];
+            await account.EndSession();
 
             return;
         }

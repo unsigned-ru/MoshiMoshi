@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MoshiMoshi
+namespace MoshiMoshi.Classes
 {
     public class UserAccount
     {
@@ -29,23 +29,23 @@ namespace MoshiMoshi
             }
         }
 
-        private void SessionDestroyed(object sender, EventArgs e)
-        {
-            session = null;
-        }
-
         public UserAccount(ulong _userID, IServiceProvider _services)
         {
             services = _services;
             userID = _userID;
             user = _services.GetRequiredService<DiscordSocketClient>().GetUser(userID);
-            
+
             //TODO: load data from database...
+        }
+
+        private void SessionDestroyed(object sender, EventArgs e)
+        {
+            session = null;
         }
 
         public bool CheckIsInSession(List<ChatSession> sessions)
         {
-            return sessions.Exists(x => x.user[0].userAccount == this || x.user[0].userAccount == this);
+            return sessions.Exists(x => x.user[0].userAccount == this || x.user[1].userAccount == this);
         }
 
         public bool IsMessageFromUser(SocketMessage msg)

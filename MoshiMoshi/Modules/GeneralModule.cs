@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -41,7 +42,7 @@ namespace MoshiMoshi.Modules
             {
                 // Get the module Summary attribute information
                 string embedFieldText = module.Summary ?? "No description available\n";
-                embedBuilder.AddField($"**{module.Name}**", embedFieldText, true);
+                embedBuilder.AddField($"**{module.Name}**", embedFieldText, false);
             }
 
             await ReplyAsync("", false, embedBuilder.Build());
@@ -69,10 +70,32 @@ namespace MoshiMoshi.Modules
             {
                 // Get the command Summary attribute information
                 string embedFieldText = command.Summary ?? "No description available\n";
-                embedBuilder.AddField($"**{command.Name}**", embedFieldText, true);
+                embedBuilder.AddField($"**{command.Name}**", embedFieldText, false);
             }
 
             await ReplyAsync("", false, embedBuilder.Build());
+        }
+
+
+        [Command("info")]
+        [Summary("Displays information about the bot.")]
+        public async Task Info()
+        {
+            EmbedBuilder embed = new EmbedBuilder()
+            {
+                Title = "Moshi Moshi information",
+                Fields = new List<EmbedFieldBuilder>(new EmbedFieldBuilder[]
+                {
+                    new EmbedFieldBuilder() { Name = "**Github**", Value = $"[Repository](https://github.com/unsigned-ru/MoshiMoshi)", IsInline = true },
+                    new EmbedFieldBuilder() { Name = "**Discord Library**", Value = $"[Discord.NET v{DiscordConfig.Version}](https://github.com/discord-net/Discord.Net)", IsInline = true },
+                    new EmbedFieldBuilder() { Name = "**Framework**", Value = $"[.NET Core v{Environment.Version}](https://github.com/dotnet/core)", IsInline = true },
+                    new EmbedFieldBuilder() { Name = "**Bot Version**", Value = $"v{Assembly.GetEntryAssembly().GetName().Version}", IsInline = true },
+                    new EmbedFieldBuilder() { Name = "**Start Development**", Value = $"22/06/2020", IsInline = true },
+                    new EmbedFieldBuilder() { Name = "**Creator**", Value = $"Sincerely, yours.", IsInline = true }
+                })
+            };
+
+            await ReplyAsync("", false, embed.Build());
         }
     }
 

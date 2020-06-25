@@ -1,4 +1,4 @@
-﻿namespace MoshiMoshi
+﻿namespace MoshiMoshi.Classes
 {
     public class Config
     {
