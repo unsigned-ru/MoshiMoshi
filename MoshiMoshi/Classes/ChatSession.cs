@@ -28,7 +28,7 @@ namespace MoshiMoshi.Classes
                 sessionAccount.userAccount.session = this;
                 dataService.sessionAccounts.Add(sessionAccount.userAccount.userID, sessionAccount);
             }
-            bindEvents();
+            BindEvents();
         }
 
 
@@ -64,7 +64,7 @@ namespace MoshiMoshi.Classes
             foreach (SessionAccount sessionAccount in user)
                 dataService.sessionAccounts.Remove(sessionAccount.userAccount.userID);
 
-            unbindEvents();
+            UnbindEvents();
         }
 
         private async Task RelayUpdateMessageForUser(Cacheable<IMessage, ulong> oldMessageCacheable, SocketMessage msg, SessionAccount sender, SessionAccount receiver)
@@ -88,14 +88,14 @@ namespace MoshiMoshi.Classes
         }
 
 
-        private void bindEvents()
+        private void BindEvents()
         {
             //bind events for session.
             var client = services.GetRequiredService<DiscordSocketClient>();
             client.MessageReceived += MessageReceived;
             client.MessageUpdated += MessageUpdated;
         }
-        private void unbindEvents()
+        private void UnbindEvents()
         {
             //bind events for session.
             var client = services.GetRequiredService<DiscordSocketClient>();
